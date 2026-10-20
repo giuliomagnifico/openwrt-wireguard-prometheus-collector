@@ -205,40 +205,6 @@ wireguard_received_bytes_total{endpoint="(none)",public_key="xyz",name="@wiregua
 ```
 
 
-## Prometheus configuration
-
-The default OpenWrt exporter configuration listens on the loopback interface.
-
-To allow a Prometheus server on your trusted LAN to scrape the endpoint, configure the exporter to listen on the LAN interface:
-
-```sh
-uci set prometheus-node-exporter-lua.main.listen_interface='lan' && uci commit prometheus-node-exporter-lua && /etc/init.d/prometheus-node-exporter-lua restart
-```
-
-Ensure that the router firewall permits access from your Prometheus server.
-
-Add the following job to `prometheus.yml`:
-
-```yaml
-scrape_configs:
-  - job_name: 'openwrt-wireguard'
-    scrape_interval: 30s
-    metrics_path: /metrics
-    params:
-      'collect[]': ['wireguard']
-    static_configs:
-      - targets:
-          - '192.168.1.1:9100'
-```
-
-Replace `192.168.1.1` with your OpenWrt router's LAN IP address.
-
-The `collect[]` parameter ensures that this job requests only the WireGuard collector.
-
-Alternatively, if you already scrape all collectors from the same OpenWrt exporter, no additional Prometheus job is required. The WireGuard metrics will be included automatically.
-
-Do not expose the metrics endpoint to the public Internet. It does not provide built-in authentication and can reveal VPN peer metadata.
-
 ## Example PromQL queries
 
 For time-based panels, use Grafana's query options.
@@ -438,22 +404,6 @@ For long-term traffic aggregation, prefer the `name`, `interface`, `allowed_ips`
 
 Grouping by a stable label does not completely eliminate discontinuities caused by changing endpoints, because `increase()` still operates on the individual underlying series before aggregation.
 
-### Security and privacy
-
-The collector reads `wg show all dump`, but never exports private keys or preshared keys.
-
-However, these labels can reveal information about the VPN configuration:
-
-```text
-public_key
-endpoint
-allowed_ips
-name
-```
-
-Restrict access to the exporter to trusted monitoring hosts.
-
-Avoid sharing raw metric output publicly without removing sensitive peer metadata.
 
 ### Firmware upgrades
 
@@ -474,39 +424,3 @@ grep -qxF '/usr/lib/lua/prometheus-collectors/wireguard.lua' /etc/sysupgrade.con
 ```
 
 This requests that sysupgrade preserve the file when configuration backups are retained.
-
-### Troubleshooting
-
-Check that the WireGuard interfaces and peers are available:
-
-```sh
-wg show
-```
-
-Check the Lua collector syntax:
-
-```sh
-luac -p /usr/lib/lua/prometheus-collectors/wireguard.lua
-```
-
-Check the exporter service:
-
-```sh
-/etc/init.d/prometheus-node-exporter-lua status
-```
-
-Verify that the collector returns metrics:
-
-```sh
-wget -qO- 'http://127.0.0.1:9100/metrics?collect[]=wireguard' | grep wireguard
-```
-
-If the collector is missing after a firmware upgrade, download it again and restart the service.
-
-## References
-
-- [OpenWrt Prometheus Lua exporter](https://github.com/openwrt/packages/tree/master/utils/prometheus-node-exporter-lua)
-- [WireGuard tools and `wg` manual](https://github.com/WireGuard/wireguard-tools)
-- [Prometheus query functions](https://prometheus.io/docs/prometheus/latest/querying/functions/)
-- [Grafana Prometheus query editor](https://grafana.com/docs/grafana/latest/datasources/prometheus/query-editor/)
-- [OpenWrt package management](https://openwrt.org/docs/guide-user/additional-software/managing_packages)
