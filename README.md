@@ -185,38 +185,25 @@ The Lua file is loaded as a module by `prometheus-node-exporter-lua`, so executa
 From your OpenWrt device:
 
 ```sh
-wget -qO- 'http://127.0.0.1:9100/metrics?collect[]=wireguard' | grep wireguard
+wget -qO- 'http://127.0.0.1:9100/metrics?collect[]=wireguard' | grep wireguard | head
 ```
 
 You should see output similar to:
 
 ```text
+root@R5S:~# wget -qO- 'http://127.0.0.1:9100/metrics?collect[]=wireguard' | grep wireguard | head
 # TYPE wireguard_latest_handshake_seconds gauge
+wireguard_latest_handshake_seconds{endpoint="192.168.1.105:51820",public_key="xyz=",name="@wireguard_wg0[0]",allowed_ips="10.4.0.2/32",interface="wg0"} 1792434193
 # TYPE wireguard_received_bytes_total counter
+wireguard_received_bytes_total{endpoint="192.168.1.105:51820",public_key="xyz=",name="@wireguard_wg0[0]",allowed_ips="10.4.0.2/32",interface="wg0"} 7084344
 # TYPE wireguard_sent_bytes_total counter
-
-wireguard_latest_handshake_seconds{interface="wg0",name="iphone",public_key="EXAMPLE_KEY",endpoint="198.51.100.10:51820",allowed_ips="10.4.0.2/32"} 1720000000
-
-wireguard_received_bytes_total{interface="wg0",name="iphone",public_key="EXAMPLE_KEY",endpoint="198.51.100.10:51820",allowed_ips="10.4.0.2/32"} 145678921
-
-wireguard_sent_bytes_total{interface="wg0",name="iphone",public_key="EXAMPLE_KEY",endpoint="198.51.100.10:51820",allowed_ips="10.4.0.2/32"} 98765432
+wireguard_sent_bytes_total{endpoint="192.168.1.105:51820",public_key="xyz=",name="@wireguard_wg0[0]",allowed_ips="10.4.0.2/32",interface="wg0"} 37757436
+# TYPE wireguard_latest_handshake_seconds gauge
+wireguard_latest_handshake_seconds{endpoint="(none)",public_key="xyz",name="@wireguard_wg0[1]",allowed_ips="10.4.0.4/32",interface="wg0"} 0
+# TYPE wireguard_received_bytes_total counter
+wireguard_received_bytes_total{endpoint="(none)",public_key="xyz",name="@wireguard_wg0[1]",allowed_ips="10.4.0.4/32",interface="wg0"} 0
 ```
 
-The values above are illustrative. Label order may vary.
-
-To verify that the collector executed successfully:
-
-```sh
-wget -qO- 'http://127.0.0.1:9100/metrics?collect[]=wireguard' | grep node_scrape_collector_success
-```
-
-Expected result:
-
-```text
-node_scrape_collector_success{collector="wireguard"} 1
-```
-
-A successful collector execution does not necessarily mean that peer data was found. If no peer metrics appear, verify the WireGuard interface and the `wg` command.
 
 ## Prometheus configuration
 
