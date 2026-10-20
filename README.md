@@ -6,6 +6,9 @@ Peer names are resolved automatically from the OpenWrt UCI network configuration
 
 The collector runs directly on OpenWrt and does not require a separate WireGuard exporter service.
 
+<img width="1386" height="390" alt="Safari 20-10-2026 at 06 31 48" src="https://github.com/user-attachments/assets/7d64b0be-2bea-4cd1-b03b-b5d936e1e7f2" />
+
+
 ## Metrics
 
 The collector exports:
